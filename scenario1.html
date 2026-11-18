@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Bill Splitter</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #d1d5db;
+            --error-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+            color: var(--text-main);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .error-msg {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .result-card {
+            margin-top: 24px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            display: none;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .result-row.total {
+            font-weight: bold;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+            margin-top: 8px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Restaurant Bill Splitter</h2>
+        
+        <div class="form-group">
+            <label for="billAmount">Bill Amount (₹)</label>
+            <input type="number" id="billAmount" value="1200" step="any" min="0" placeholder="Enter total bill">
+            <div id="billError" class="error-msg">Please enter a valid bill amount greater than 0.</div>
+        </div>
+
+        <div class="form-group">
+            <label for="tipPercentage">Tip Percentage</label>
+            <select id="tipPercentage">
+                <option value="0">0%</option>
+                <option value="5">5%</option>
+                <option value="10" selected>10%</option>
+                <option value="15">15%</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="numPeople">Number of People</label>
+            <input type="number" id="numPeople" value="4" min="1" step="1" placeholder="Number of people">
+            <div id="peopleError" class="error-msg">Please enter at least 1 person.</div>
+        </div>
+
+        <button id="calculateBtn">Calculate Split</button>
+
+        <div id="resultCard" class="result-card">
+            <div class="result-row">
+                <span>Tip Amount:</span>
+                <span id="displayTip">₹0.00</span>
+            </div>
+            <div class="result-row total">
+                <span>Total with Tip:</span>
+                <span id="displayTotal">₹0.00</span>
+            </div>
+            <div class="result-row total">
+                <span>Per Person Share:</span>
+                <span id="displayPerPerson">₹0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('calculateBtn').addEventListener('click', function() {
+            // Hide previous errors and results
+            const billError = document.getElementById('billError');
+            const peopleError = document.getElementById('peopleError');
+            const resultCard = document.getElementById('resultCard');
+            
+            billError.style.display = 'none';
+            peopleError.style.display = 'none';
+
+            // Read values and convert using parseFloat() / parseInt()
+            const billInput = document.getElementById('billAmount').value;
+            const tipInput = document.getElementById('tipPercentage').value;
+            const peopleInput = document.getElementById('numPeople').value;
+
+            const billAmount = parseFloat(billInput);
+            const tipPercentage = parseFloat(tipInput);
+            const numPeople = parseInt(peopleInput, 10);
+
+            // Validation checks
+            let isValid = true;
+
+            if (isNaN(billAmount) || billAmount <= 0) {
+                billError.style.display = 'block';
+                isValid = false;
+            }
+
+            if (isNaN(numPeople) || numPeople < 1) {
+                peopleError.style.display = 'block';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                resultCard.style.display = 'none';
+                return;
+            }
+
+            // Calculation logic
+            const tipAmount = (billAmount * tipPercentage) / 100;
+            const totalAmount = billAmount + tipAmount;
+            const perPerson = totalAmount / numPeople;
+
+            // Display results
+            document.getElementById('displayTip').textContent = `₹${tipAmount.toFixed(2)}`;
+            document.getElementById('displayTotal').textContent = `₹${totalAmount.toFixed(2)}`;
+            document.getElementById('displayPerPerson').textContent = `₹${perPerson.toFixed(2)}`;
+            
+            resultCard.style.display = 'block';
+        });
+
+        // Run calculation automatically on load for default values (Ravi + 3 friends = 4 people, ₹1200 bill)
+        window.onload = function() {
+            document.getElementById('calculateBtn').click();
+        };
+    </script>
+</body>
+</html>
